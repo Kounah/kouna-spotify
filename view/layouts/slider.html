@@ -1,0 +1,55 @@
+{% block style %}
+<style>
+  .slider{
+    width:100%;
+    overflow:hidden;
+    position:relative;
+    margin:0;
+  }
+  .edge{
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    position:absolute;
+    height:100%;
+    display:block;
+  }
+  ul{
+    overflow:hidden;
+    width:1000%;
+    margin:0;
+  }
+  li{
+    list-style:none;
+    display:inline-block;
+    padding:0 50px;
+    font-size: 75vh;
+    line-height: 100vh;
+  }
+</style>
+{% endblock %}
+{% block javascript %}
+<script>
+  window.requestAnimationFrame = (function(){
+    return  window.requestAnimationFrame       ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            function( callback ){
+              window.setTimeout(callback, 1000 / 60);
+            };
+  })();
+  
+  var speed = 5000;
+  (function currencySlide() {
+      var currencyPairWidth = $('.slideItem:first-child').outerWidth();
+      $(".slideContainer").animate({marginLeft:-currencyPairWidth},speed, 'linear', function(){
+                  $(this).css({marginLeft:0}).find("li:last").after($(this).find("li:first"));
+          });
+          requestAnimationFrame(currencySlide);
+  });
+</script>
+{% endblock javascript %}
+
+{% block title %}{% endblock %}
+{% block content %}{% endblock %}

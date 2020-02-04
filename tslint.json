@@ -1,0 +1,15 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+      "tslint:recommended"
+  ],
+  "jsRules": {},
+  "rules": {
+      "newline-per-chained-call": true,
+      "newline-before-return": true,
+      "interface-name": false,
+      "no-namespace": false,
+      "no-console": false
+  },
+  "rulesDirectory": []
+}

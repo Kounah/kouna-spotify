@@ -1,0 +1,13 @@
+{% extends "../layouts/slider.html" %}
+
+{% block title %}Artists{% endblock %}
+
+{% block content %}
+<div class="slider">
+  <ul>
+    {% for artist in artists %}
+    <li>{{ artist }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
