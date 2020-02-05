@@ -26,7 +26,6 @@ const api_1 = __importStar(require("../api/api"));
 const currently_playing_1 = __importDefault(require("./currently-playing"));
 const mongo_1 = __importDefault(require("./mongo"));
 const nunjucks_1 = __importDefault(require("./nunjucks"));
-const user_1 = require("./mongo/models/user");
 class App {
     constructor(config) {
         mongo_1.default(config.mongo);
@@ -57,9 +56,9 @@ class App {
                 });
                 const profile = (yield api.getMyProfile());
                 user.spotifyId = profile.id;
-                if (yield user_1.User.exists({ spotifyId: profile.id })) {
+                if ((yield global.User.countDocuments({ spotifyId: profile.id })) >= 1) {
                     yield user.remove();
-                    return yield user_1.User.findOne(profile.id)
+                    return yield global.User.findOne({ spotifyId: profile.id })
                         .exec();
                 }
                 return user.save();
@@ -69,6 +68,10 @@ class App {
             });
         });
         const apiRouter = express_1.default.Router();
+        apiRouter.use((req, res, next) => {
+            res.header("Access-Control-Allow-Origin", "*");
+            next();
+        });
         apiRouter.use("/token", (req, res) => {
             if (req.accepts("json")) {
                 res
@@ -97,7 +100,7 @@ class App {
             });
         }, apiRouter);
         Promise.resolve((() => __awaiter(this, void 0, void 0, function* () {
-            const expired = yield user_1.User.find({
+            const expired = yield global.User.find({
                 expires: {
                     $lte: new Date()
                 }
@@ -106,7 +109,7 @@ class App {
             expired.forEach(user => {
                 api_1.refreshToken(user, config);
             });
-            const unexpired = yield user_1.User.find({
+            const unexpired = yield global.User.find({
                 expires: {
                     $gt: new Date()
                 }

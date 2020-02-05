@@ -13,7 +13,7 @@ exports.defaultConfig = {
         },
         mongo: {
             connection: {
-                url: "mongodb://127.0.0.1:27107/kouna-spotify",
+                url: "mongodb://127.0.0.1:27017/kouna-spotify",
                 options: {
                     useNewUrlParser: true,
                     useUnifiedTopology: true,

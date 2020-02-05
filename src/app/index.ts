@@ -6,7 +6,6 @@ import AppConfig from "./config";
 import createCurrentlyPlayingRouter from "./currently-playing";
 import mongoInit from "./mongo";
 import configureNunjucks from "./nunjucks";
-import { User } from "./mongo/models/user";
 
 export type Middleware = (req: express.Request, res: express.Response, next?: express.NextFunction) => void;
 
@@ -56,10 +55,10 @@ export default class App {
         const profile = (await api.getMyProfile());
         user.spotifyId = profile.id;
 
-        if(await User.exists({spotifyId: profile.id})) {
+        if(await global.User.countDocuments({spotifyId: profile.id}) >= 1) {
           await user.remove();
 
-          return await User.findOne(profile.id)
+          return await global.User.findOne({ spotifyId: profile.id })
             .exec()
         }
 
@@ -87,7 +86,7 @@ export default class App {
     this.app.use<{userId: string}>("/api/:userId", (req, res, next) => {
       Promise.resolve((async () => {
         if(await global.User.exists({spotifyId: req.params.userId})) {
-          const user = await global.User.findOne({spotifyId: req.params.userId});
+          const user = await global.User.findOne({ spotifyId: req.params.userId });
           req.api = new Api({
             token: user.accessToken
           });
@@ -104,7 +103,7 @@ export default class App {
     }, apiRouter);
 
     Promise.resolve((async () => {
-      const expired = await User.find({
+      const expired = await global.User.find({
         expires: {
           $lte: new Date()
         }
@@ -115,7 +114,7 @@ export default class App {
         refreshToken(user, config);
       })
 
-      const unexpired = await User.find({
+      const unexpired = await global.User.find({
         expires: {
           $gt: new Date()
         }
