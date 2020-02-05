@@ -1,15 +1,35 @@
-import mongoose, { Model } from "mongoose";
+import mongoose from "mongoose";
 
 export interface IUser extends mongoose.Document {
-  token: string;
+  code: string;
   spotifyId: string;
+  accessToken: string;
+  tokenType: string;
+  scope: string;
+  expires: Date;
+  refreshToken: string;
 }
 
 export const userSchema = new mongoose.Schema({
-  token: {
+  code: {
     type: String
   },
   spotifyId: {
+    type: String
+  },
+  accessToken: {
+    type: String
+  },
+  tokenType: {
+    type: String
+  },
+  scope: {
+    type: String
+  },
+  expires: {
+    type: Date
+  },
+  refreshToken: {
     type: String
   }
 }, {
@@ -21,13 +41,3 @@ export const userSchema = new mongoose.Schema({
 
 export const userModelName = "User";
 export const User = mongoose.model<IUser>(userModelName, userSchema);
-
-declare global {
-  namespace NodeJS {
-    interface Global {
-      User: Model<IUser>
-    }
-  }
-}
-
-global.User = User;

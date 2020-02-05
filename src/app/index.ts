@@ -1,12 +1,12 @@
-import Api, { CurrentlyPlaying } from "../api/api";
 import express from "express";
-import createCurrentlyPlayingRouter from "./currently-playing";
-import AppConfig from "./config";
-import configureNunjucks from "./nunjucks";
 import path from "path";
 import url from "url";
-import bodyParser from "body-parser";
+import Api, { token, refreshToken, updateTimeout } from "../api/api";
+import AppConfig from "./config";
+import createCurrentlyPlayingRouter from "./currently-playing";
 import mongoInit from "./mongo";
+import configureNunjucks from "./nunjucks";
+import { User } from "./mongo/models/user";
 
 export type Middleware = (req: express.Request, res: express.Response, next?: express.NextFunction) => void;
 
@@ -28,40 +28,69 @@ export default class App {
     this.app = express();
 
     this.app.get("/login", (req, res) => {
-      const scopes = 'user-read-private user-read-email';
-      res.redirect('https://accounts.spotify.com/authorize' +
-        '?response_type=code' +
-        '&client_id=' + config.clientId +
-        (scopes ? '&scope=' + encodeURIComponent(scopes) : '') +
-        '&redirect_uri=' + encodeURIComponent(url.format({
+      const scopes = [
+        "user-read-private",
+        "user-read-email",
+        "user-read-currently-playing"
+      ].join(" ");
+      res.redirect("https://accounts.spotify.com/authorize" +
+        "?response_type=code" +
+        "&client_id=" + config.clientId +
+        (scopes ? '&scope=' + encodeURIComponent(scopes) : "") +
+        "&redirect_uri=" + encodeURIComponent(url.format({
           protocol: config.redirect.protocol,
           slashes: true,
           hostname: config.redirect.hostname,
           port: config.redirect.port,
-          pathname: "/login-complete"
+          pathname: "/cb/code"
         })));
     });
 
-    this.app.get("/login-complete", bodyParser.json({
-      type: "application/json"
-    }), (req, res) => {
-      console.log("cat");
+    this.app.get("/cb/code", (req, res) => {
+      Promise.resolve((async () => {
+        const user = await token(req.query.code, config);
+        const api = new Api({
+          token: user.accessToken
+        });
+
+        const profile = (await api.getMyProfile());
+        user.spotifyId = profile.id;
+
+        if(await User.exists({spotifyId: profile.id})) {
+          await user.remove();
+
+          return await User.findOne(profile.id)
+            .exec()
+        }
+
+        return user.save();
+      })())
+        .then((user) => {
+          res.redirect(`/api/${user.spotifyId}/token`)
+        });
     });
 
     const apiRouter = express.Router();
+    apiRouter.use("/token", (req, res) => {
+      if(req.accepts("json")) {
+        res
+          .status(200)
+          .json(req.api);
+      }
+    })
     apiRouter.use("/currently-playing", createCurrentlyPlayingRouter());
 
     this.app.use<{userId: string}>("/api/:userId", (req, res, next) => {
-      Promise.resolve(async () => {
+      Promise.resolve((async () => {
         if(await global.User.exists({spotifyId: req.params.userId})) {
           const user = await global.User.findOne({spotifyId: req.params.userId});
           req.api = new Api({
-            token: user.token
+            token: user.accessToken
           });
 
           return;
         } else throw new Error("userid does not exist");
-      })
+      })())
         .then(() => {
           next();
         })
@@ -69,6 +98,30 @@ export default class App {
           next(err);
         })
     }, apiRouter);
+
+    Promise.resolve((async () => {
+      const expired = await User.find({
+        expires: {
+          $lte: new Date()
+        }
+      })
+        .exec()
+
+      expired.forEach(user => {
+        refreshToken(user, config);
+      })
+
+      const unexpired = await User.find({
+        expires: {
+          $gt: new Date()
+        }
+      })
+        .exec()
+
+      unexpired.forEach(user => {
+        updateTimeout(user, config);
+      })
+    })())
 
     config.nunjucks.express = this.app;
     configureNunjucks(config.nunjucks, path.join(__dirname, '../../view'))

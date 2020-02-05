@@ -5,10 +5,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 exports.userSchema = new mongoose_1.default.Schema({
-    token: {
+    code: {
         type: String
     },
     spotifyId: {
+        type: String
+    },
+    accessToken: {
+        type: String
+    },
+    tokenType: {
+        type: String
+    },
+    scope: {
+        type: String
+    },
+    expires: {
+        type: Date
+    },
+    refreshToken: {
         type: String
     }
 }, {
@@ -19,5 +34,4 @@ exports.userSchema = new mongoose_1.default.Schema({
 });
 exports.userModelName = "User";
 exports.User = mongoose_1.default.model(exports.userModelName, exports.userSchema);
-global.User = exports.User;
 //# sourceMappingURL=user.js.map

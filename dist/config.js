@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaultConfig = {
     app: {
         clientId: "",
+        clientSecret: "",
         nunjucks: {},
         port: 42069,
         redirect: {

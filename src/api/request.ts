@@ -1,16 +1,17 @@
 import * as http from "http";
 import * as https from "https";
 import * as url from "url";
-
+import formUrlEncoded from "form-urlencoded";
 
 export interface RequestOptions extends http.RequestOptions {
   url: string | url.UrlWithStringQuery;
   body?: Buffer | string;
   encoding?: BufferEncoding;
   json?: any;
+  form?: object;
 }
 
-export class ResponseParser {
+export class ResponseParser<T> {
   private res: http.IncomingMessage;
 
   constructor(response: http.IncomingMessage) {
@@ -54,7 +55,7 @@ export class ResponseParser {
   }
 
   async json() {
-    return JSON.parse(await this.raw());
+    return JSON.parse(await this.raw()) as T;
   }
 }
 
@@ -71,6 +72,8 @@ export default function request(options: RequestOptions) {
     options.path = options.url.pathname + (options.url.search ? options.url.search : "");
   }
 
+  if(typeof options.headers !== "object") options.headers = {};
+
   return new Promise<http.IncomingMessage>((resolve, reject) => {
     let r = http.request;
     if(options.protocol === "https:") {
@@ -80,6 +83,11 @@ export default function request(options: RequestOptions) {
     if(typeof options.json !== "undefined") {
       options.headers["Content-Type"] = "application/json; charset=utf-8";
       options.body = JSON.stringify(options.json);
+    }
+
+    if(typeof options.form !== "undefined") {
+      options.headers["Content-Type"] = "application/x-www-form-urlencoded";
+      options.body = formUrlEncoded(options.form);
     }
 
     const req = r(options, (res) => {

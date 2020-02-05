@@ -1,0 +1,17 @@
+{% extends "../layouts/main.html" %}
+
+{% block title %}Cover{% endblock %}
+
+{% block style %}
+<style>
+  body {
+    background-image: url("{{ images[0].url }}");
+    background-size: contain;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    height: 100vh;
+    width: 100vw;
+  }
+</style>
+{% endblock %}
+{% block content %}{% endblock %}

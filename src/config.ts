@@ -7,6 +7,7 @@ export interface Config {
 export const defaultConfig: Config = {
   app: {
     clientId: "",
+    clientSecret: "",
     nunjucks: { },
     port: 42069,
     redirect: {

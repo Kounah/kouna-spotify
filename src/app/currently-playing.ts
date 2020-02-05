@@ -12,7 +12,7 @@ declare global {
 
 export function createGetCurrentlyPlayingMiddleware(): Middleware {
   return (req, res, next) => {
-    req.api.getCurentlyPlaying()
+    req.api.getMyCurentlyPlaying()
       .then((result) => {
         req.currentlyPlaying = result;
         next();
@@ -39,11 +39,56 @@ export function createCurrentlyPlayingArtistsEndpoint(): Middleware {
   }
 }
 
+export function createCurrentlyPlayingTitleEndpoint(): Middleware {
+  return (req, res) => {
+    res.status(200);
+
+    if(req.accepts("html")) {
+      return res.render("currently-playing/title.html", {
+        title: req.currentlyPlaying.item.name
+      });
+    }
+
+    if(req.accepts("json")) {
+      return res.json(req.currentlyPlaying.item.name);
+    }
+  }
+}
+
+export function createCurrentlyPlayingCoverEndpoint(): Middleware {
+  return (req, res) => {
+    res.status(200);
+
+    if(req.accepts("html")) {
+      return res.render("currently-playing/cover.html", {
+        images: req.currentlyPlaying.item.album.images
+      });
+    }
+
+    if(req.accepts("json")) {
+      return res.json(req.currentlyPlaying.item.album.images);
+    }
+  }
+}
+
+export function createCurrentlyPlayingEndpoint(): Middleware {
+  return (req, res) => {
+    res.status(200);
+
+    if(req.accepts("json")) {
+      return res.json(req.currentlyPlaying);
+    }
+  }
+}
+
 export default function createCurrentlyPlayingRouter() {
   const router = express.Router();
 
   router.use(createGetCurrentlyPlayingMiddleware());
   router.get("/artists", createCurrentlyPlayingArtistsEndpoint());
+  router.get("/title", createCurrentlyPlayingTitleEndpoint());
+  router.get("/cover", createCurrentlyPlayingCoverEndpoint());
+  router.get("/", createCurrentlyPlayingEndpoint());
 
   return router;
 }

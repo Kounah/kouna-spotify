@@ -15,10 +15,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     result["default"] = mod;
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const http = __importStar(require("http"));
 const https = __importStar(require("https"));
 const url = __importStar(require("url"));
+const form_urlencoded_1 = __importDefault(require("form-urlencoded"));
 class ResponseParser {
     constructor(response) {
         this.res = response;
@@ -71,6 +75,8 @@ function request(options) {
         options.port = options.url.port;
         options.path = options.url.pathname + (options.url.search ? options.url.search : "");
     }
+    if (typeof options.headers !== "object")
+        options.headers = {};
     return new Promise((resolve, reject) => {
         let r = http.request;
         if (options.protocol === "https:") {
@@ -79,6 +85,10 @@ function request(options) {
         if (typeof options.json !== "undefined") {
             options.headers["Content-Type"] = "application/json; charset=utf-8";
             options.body = JSON.stringify(options.json);
+        }
+        if (typeof options.form !== "undefined") {
+            options.headers["Content-Type"] = "application/x-www-form-urlencoded";
+            options.body = form_urlencoded_1.default(options.form);
         }
         const req = r(options, (res) => {
             resolve(res);
