@@ -71,6 +71,9 @@ export default class App {
     });
 
     const apiRouter = express.Router();
+    apiRouter.use((req, res, next) => {
+      res.header("Access-Control-Allow-Origin", "*");
+    })
     apiRouter.use("/token", (req, res) => {
       if(req.accepts("json")) {
         res
