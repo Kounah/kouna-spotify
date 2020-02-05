@@ -2,11 +2,10 @@
 
 {% block title %}Title{% endblock %}
 
+
 {% block content %}
+{% include "../components/autoreload.html" %}
 <div class="slider">
-  {% for artist in artists %}
-  <span>{{ artist }}</span>
-  {% if artist !== artists[artists.length-1] %}<span>•</span>{% endif %}
-  {% endfor %}
+  <span>{{ title }}</span>
 </div>
 {% endblock %}

@@ -2,7 +2,9 @@
 
 {% block title %}Artists{% endblock %}
 
+
 {% block content %}
+{% include "../components/autoreload.html" %}
 <div class="slider">
   {% for artist in artists %}
   <span>{{ artist }}</span>

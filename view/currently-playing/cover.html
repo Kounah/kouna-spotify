@@ -2,6 +2,7 @@
 
 {% block title %}Cover{% endblock %}
 
+
 {% block style %}
 <style>
   body {
@@ -14,4 +15,6 @@
   }
 </style>
 {% endblock %}
-{% block content %}{% endblock %}
+{% block content %}
+{% include "../components/autoreload.html" %}
+{% endblock %}
